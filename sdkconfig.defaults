@@ -1,0 +1,33 @@
+# sdkconfig.defaults — project-specific overrides for eaf_firmware
+# Applied automatically by idf.py build on top of ESP-IDF defaults.
+
+# Flash: 8 MB (TODO: confirm the board's flash size — N8/N16).
+CONFIG_ESPTOOLPY_FLASHSIZE_8MB=y
+CONFIG_ESPTOOLPY_FLASHSIZE="8MB"
+
+# CPU: 240 MHz
+CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_240=y
+
+# Partition table: large single-app (3 MB factory partition)
+CONFIG_PARTITION_TABLE_SINGLE_APP_LARGE=y
+CONFIG_PARTITION_TABLE_FILENAME="partitions_singleapp_large.csv"
+
+# TinyUSB: CDC-ACM serial device (the focuser's only USB interface).
+CONFIG_TINYUSB_CDC_ENABLED=y
+CONFIG_TINYUSB_CDC_RX_BUFSIZE=2048
+CONFIG_TINYUSB_CDC_TX_BUFSIZE=2048
+CONFIG_TINYUSB_CDC_EP_BUFSIZE=512
+
+# TinyUSB: custom USB descriptors
+# (disable the default VID/PID so the custom values below take effect)
+CONFIG_TINYUSB_DESC_USE_ESPRESSIF_VID=n
+CONFIG_TINYUSB_DESC_USE_DEFAULT_PID=n
+CONFIG_TINYUSB_DESC_CUSTOM_VID=0x303A
+CONFIG_TINYUSB_DESC_CUSTOM_PID=0x4001
+CONFIG_TINYUSB_DESC_MANUFACTURER_STRING="Nestor Marsollier"
+CONFIG_TINYUSB_DESC_PRODUCT_STRING="Focuser Serial"
+CONFIG_TINYUSB_DESC_SERIAL_STRING="000001"
+CONFIG_TINYUSB_DESC_CDC_STRING="Focuser Serial"
+
+# Compiler: performance optimization (-O2) instead of debug (-Og)
+CONFIG_COMPILER_OPTIMIZATION_PERF=y
