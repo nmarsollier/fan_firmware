@@ -1,8 +1,7 @@
 /* Proto — proto_action.c — ACTION: operations with a beginning and an end.
  *
- * Only the device restart is implemented. A retried request with the same id
- * replays the original result instead of re-executing (see
- * proto_action_lookup/record).
+ * device restart reboots; device bootloader reboots into ROM download mode for
+ * button-less flashing.
  */
 #include "proto_internal.h"
 
@@ -12,6 +11,10 @@
 
 #include "esp_system.h"
 #include "esp_timer.h"
+#include "soc/rtc_cntl_reg.h"
+#include "soc/soc.h"
+
+#include "usb_cdc.h"
 
 static void get_session(const char *req, char *out, size_t cap) {
     proto_json_get_string(req, "session", out, cap);
@@ -20,6 +23,16 @@ static void get_session(const char *req, char *out, size_t cap) {
 /* Delayed reboot: the handler returns and the response is flushed before this. */
 static void restart_timer_cb(void *arg) {
     (void) arg;
+    esp_restart();
+}
+
+/* Delayed reboot into ROM download mode (button-less flashing). */
+static void bootloader_timer_cb(void *arg) {
+    (void) arg;
+    if (usb_cdc_prepare_download() != ESP_OK) {
+        return;
+    }
+    REG_SET_BIT(RTC_CNTL_OPTION1_REG, RTC_CNTL_FORCE_DOWNLOAD_BOOT);
     esp_restart();
 }
 
@@ -68,6 +81,30 @@ static void handle_restart(uint32_t id, const char *session, char *out, size_t c
     }
 }
 
+/* ── device bootloader ─────────────────────────────────────── */
+
+static void handle_bootloader(uint32_t id, const char *session, char *out, size_t cap) {
+    esp_timer_handle_t timer = NULL;
+    esp_timer_create_args_t args = {
+        .callback = bootloader_timer_cb,
+        .name = "proto_bootloader",
+    };
+    esp_err_t err = esp_timer_create(&args, &timer);
+    if (err == ESP_OK) {
+        err = esp_timer_start_once(timer, 200 * 1000);
+        if (err != ESP_OK) {
+            esp_timer_delete(timer);
+        }
+    }
+    if (err != ESP_OK) {
+        emit_err(out, cap, "action", id, session, "INTERNAL",
+                 "bootloader unavailable");
+        return;
+    }
+    emit_ok(out, cap, "action", id, session,
+            "\"op_id\":\"\",\"status\":\"accepted\"");
+}
+
 /* ── dispatcher ────────────────────────────────────────────── */
 
 void proto_handle_action(const char *req, uint32_t id, char *out, size_t cap) {
@@ -81,6 +118,8 @@ void proto_handle_action(const char *req, uint32_t id, char *out, size_t cap) {
 
     if (strcmp(target, "device") == 0 && strcmp(action, "restart") == 0) {
         handle_restart(id, session, out, cap);
+    } else if (strcmp(target, "device") == 0 && strcmp(action, "bootloader") == 0) {
+        handle_bootloader(id, session, out, cap);
     } else {
         emit_err(out, cap, "action", id, session, "NOT_SUPPORTED",
                  "unknown action");

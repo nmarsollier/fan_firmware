@@ -59,14 +59,15 @@ instead of the session/data envelope.
 | Operation | Status |
 |---|---|
 | `capabilities` | Unified handshake header + fan capabilities (real). |
-| `state / device` | `power_external_present`, `health`, `fan_mode`, `reset_reason` (real). |
-| `state / fan` | `mode`, `power`, `speed`, `manual_speed`, `rpm`, `power_available` (real; `rpm` is a theoretical estimate from the PWM duty until the tach is wired). |
+| `state / device` | `power_external_present`, `health`, `fan_mode`, `reset_reason` (real; `power_external_present` is always `true` — the board no longer senses the 12 V rail). |
+| `state / fan` | `mode`, `power`, `speed`, `manual_speed`, `rpm`, `power_available` (real; `rpm` is a theoretical estimate from the PWM duty until the tach is wired; `power_available` is always `true`). |
 | `state / environment` | Mirror temperature only: `mirror_c` (real); ambient/humidity/dew are always `null`. |
 | `state / buttons` | Fan button press state (real, debounced). |
 | `config / <group> / get` | Read-only mock; `set` → `NOT_SUPPORTED`. |
 | `control / fan / mode` | `params.value` (`off`/`auto`/`manual`). |
 | `control / fan / speed` | `params.value` (`FAN_SPEED_MIN`–`FAN_SPEED_MAX`) → manual PWM (applied in MANUAL). |
 | `action / device / restart` | Deferred reboot (real). |
+| `action / device / bootloader` | Reboot into ROM download mode (real, for button-less flashing). |
 | `control / device / session_open`, `heartbeat` | Minimal, no real lease enforcement. |
 
 ## Error codes (strings)

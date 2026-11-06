@@ -1,7 +1,6 @@
 #pragma once
 
 #include "driver/gpio.h"
-#include "hal/adc_types.h"
 
 /*
  * FAN hardware configuration.
@@ -15,24 +14,18 @@
  * Pin assignments
  * ========================================================================= */
 
-/* Board status LED — direct GPIO, LEDC PWM (active-high: anode via 100 Ω). */
-#define BOARD_LED_GPIO          GPIO_NUM_35
-
-/* Fan status LED — brightness follows the fan intensity. */
-#define FAN_LED_GPIO            GPIO_NUM_36
-
-/* External 12 V rail detection — GPIO 17 (ADC2_CH6). */
-#define BOARD_POWER_ADC_UNIT    ADC_UNIT_2
-#define BOARD_POWER_ADC_CHANNEL ADC_CHANNEL_6
+/* Status LED — onboard RGB (WS2812), driven via RMT. GPIO 48 on the common
+ * Super Mini (clone variants may use GPIO 21). */
+#define LED_GPIO        GPIO_NUM_48
 
 /* Primary-mirror temperature sensor (DS18B20) — 1-wire on a dedicated GPIO. */
-#define DS18B20_GPIO    GPIO_NUM_6
+#define DS18B20_GPIO    GPIO_NUM_7
 
 /* Primary-mirror fan — Noctua NF-A8 PWM + 12 V relay.
  * PWM drives the fan speed input (25 kHz) through an open-drain N-MOSFET;
  * the relay switches the fan's 12 V supply. */
-#define FAN_PWM_GPIO           GPIO_NUM_14
-#define FAN_RELAY_GPIO         GPIO_NUM_13
+#define FAN_PWM_GPIO           GPIO_NUM_1
+#define FAN_RELAY_GPIO         GPIO_NUM_8
 #define FAN_RELAY_ACTIVE_LEVEL 1
 #define FAN_SPEED_MAX         100    /* user speed at full duty (2200 RPM) */
 #define FAN_SPEED_MIN         1      /* user speed at FAN_MIN_PWM_PCT (≈450 RPM) */
@@ -51,4 +44,4 @@
  * ========================================================================= */
 
 /* Fan mode cycle (off → auto → manual → off). */
-#define BUTTON_FAN_MODE_GPIO        GPIO_NUM_2
+#define BUTTON_FAN_MODE_GPIO        GPIO_NUM_3

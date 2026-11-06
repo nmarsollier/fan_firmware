@@ -1,50 +1,60 @@
 /* Led — led_init.c
  *
- * Purpose: initialise every status LED's LEDC PWM channel. Each LED owns its
- * own timer (board = timer 0, fan = timer 3; timer 2 is the fan PWM).
+ * Purpose: initialise the RMT-based WS2812 driver on the onboard GPIO.
+ *
+ * Configures an RMT TX channel at 10 MHz with a bytes encoder tuned to the
+ * WS2812 bit timing, and starts with the NORMAL (green) color.
  */
 #include "led_internal.h"
 
 #include "esp_err.h"
+#include "esp_log.h"
 
-LedConfig led_configs[LED_COUNT] = {
-    [LED_ID_BOARD]   = { .timer = LEDC_TIMER_0, .channel = LEDC_CHANNEL_0, .gpio = BOARD_LED_GPIO },
-    [LED_ID_FAN]     = { .timer = LEDC_TIMER_3, .channel = LEDC_CHANNEL_3, .gpio = FAN_LED_GPIO },
-};
+rmt_channel_handle_t led_tx_chan;
+rmt_encoder_handle_t led_encoder;
+SemaphoreHandle_t led_mutex;
 
-LedState led_states[LED_COUNT] = {
-    [LED_ID_BOARD]   = LED_STATE_DIM,
-    [LED_ID_FAN]     = LED_STATE_DIM,
-};
+static const char *TAG = "LED_INIT";
 
 void led_init(void) {
-    for (int i = 0; i < LED_COUNT; i++) {
-        const LedConfig *cfg = &led_configs[i];
+    rmt_tx_channel_config_t tx_config = {
+        .gpio_num = LED_GPIO,
+        .clk_src = RMT_CLK_SRC_DEFAULT,
+        .resolution_hz = LED_RMT_RES_HZ,
+        .mem_block_symbols = 64,
+        .trans_queue_depth = 4,
+        /* The LED and the DS18B20 1-wire channels (onewire_bus RMT) share one
+         * RMT group interrupt; its priority is set by the first channel created
+         * (this one). The 1-wire driver leaves the priority unspecified, so it
+         * inherits this one. */
+        .intr_priority = 3,
+    };
+    ESP_ERROR_CHECK(rmt_new_tx_channel(&tx_config, &led_tx_chan));
+    ESP_ERROR_CHECK(rmt_enable(led_tx_chan));
 
-        ledc_timer_config_t timer_conf = {
-            .speed_mode      = LED_MODE,
-            .duty_resolution = LED_DUTY_RES,
-            .timer_num       = cfg->timer,
-            .freq_hz         = LED_FREQ_HZ,
-            .clk_cfg         = LEDC_AUTO_CLK,
-            .deconfigure     = false,
-        };
-        ESP_ERROR_CHECK(ledc_timer_config(&timer_conf));
+    rmt_bytes_encoder_config_t enc_config = {
+        .bit0 = {
+            .duration0 = LED_WS2812_T0H,
+            .level0 = 1,
+            .duration1 = LED_WS2812_T0L,
+            .level1 = 0,
+        },
+        .bit1 = {
+            .duration0 = LED_WS2812_T1H,
+            .level0 = 1,
+            .duration1 = LED_WS2812_T1L,
+            .level1 = 0,
+        },
+        .flags = { .msb_first = true },
+    };
+    ESP_ERROR_CHECK(rmt_new_bytes_encoder(&enc_config, &led_encoder));
 
-        ledc_channel_config_t chan_conf = {
-            .gpio_num       = cfg->gpio,
-            .speed_mode     = LED_MODE,
-            .channel        = cfg->channel,
-            .intr_type      = LEDC_INTR_DISABLE,
-            .timer_sel      = cfg->timer,
-            .duty           = LED_DIM_DUTY,
-            .hpoint         = 0,
-            .sleep_mode     = LEDC_SLEEP_MODE_NO_ALIVE_NO_PD,
-            .flags          = { .output_invert = 0 },
-        };
-        ESP_ERROR_CHECK(ledc_channel_config(&chan_conf));
+    led_mutex = xSemaphoreCreateMutex();
+    if (led_mutex == NULL) {
+        ESP_LOGE(TAG, "failed to create LED mutex");
     }
 
-    /* Fade service (needed for ledc_set_fade_time_and_start). */
-    ESP_ERROR_CHECK(ledc_fade_func_install(0));
+    /* Set the initial NORMAL color; led_set_state() skips it because the default
+     * state is already NORMAL, so the WS2812 would otherwise never light. */
+    led_set_color(LED_NORMAL_R, LED_NORMAL_G, LED_NORMAL_B);
 }

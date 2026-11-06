@@ -3,8 +3,6 @@ idf_component_register(
         SRCS
         "main.c"
 
-        "board/board.c"
-
         "led/led_init.c"
         "led/led_state.c"
         "led/led_beacon.c"
@@ -37,7 +35,6 @@ idf_component_register(
         INCLUDE_DIRS
         "."
         "config"
-        "board"
         "led"
         "ds18b20"
         "fan"
@@ -51,6 +48,5 @@ idf_component_register(
         nvs_flash
         esp_driver_gpio
         esp_driver_ledc
-        esp_adc
         esp_driver_rmt
 )

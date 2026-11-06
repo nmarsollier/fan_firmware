@@ -7,7 +7,6 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#include "board.h"
 #include "buttons.h"
 #include "ds18b20.h"
 #include "fan.h"
@@ -28,7 +27,6 @@ static void main_loop_task(void *arg) {
     const TickType_t period = pdMS_TO_TICKS(MAIN_LOOP_PERIOD_MS);
 
     while (true) {
-        board_update();
         ds18b20_update();
         fan_update();
         buttons_update();

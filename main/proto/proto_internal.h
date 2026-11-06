@@ -6,7 +6,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "board.h"
 #include "fan.h"
 
 /* ── Protocol identity ────────────────────────────────────── */

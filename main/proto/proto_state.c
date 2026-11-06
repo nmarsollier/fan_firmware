@@ -32,15 +32,12 @@ static const char *reset_reason_str(void) {
 /* ── state / device ────────────────────────────────────────── */
 
 static void state_device(char *out, size_t cap, uint32_t id, const char *session) {
-    bool power = board_has_external_power();
-
     size_t len = 0;
     out[0] = '\0';
     proto_env_begin(out, cap, &len, "state", id, session, true);
     proto_buf_append(out, cap, &len,
-        ",\"data\":{\"power_external_present\":%s,\"health\":\"ok\","
+        ",\"data\":{\"power_external_present\":true,\"health\":\"ok\","
         "\"fan_mode\":\"%s\",\"reset_reason\":\"%s\",\"faults\":[]}}",
-        power ? "true" : "false",
         fan_mode_to_string(fan_get_mode()),
         reset_reason_str());
 }
@@ -59,9 +56,8 @@ static void state_fan(char *out, size_t cap, uint32_t id, const char *session) {
     proto_env_begin(out, cap, &len, "state", id, session, true);
     proto_buf_append(out, cap, &len,
         ",\"data\":{\"error\":null,\"mode\":\"%s\",\"power\":%s,\"speed\":%d,"
-        "\"manual_speed\":%d,\"power_available\":%s,\"rpm\":",
-        mode, power ? "true" : "false", speed, manual,
-        board_has_external_power() ? "true" : "false");
+        "\"manual_speed\":%d,\"power_available\":true,\"rpm\":",
+        mode, power ? "true" : "false", speed, manual);
     if (rpm >= 0) {
         proto_buf_append(out, cap, &len, "%d}}", rpm);
     } else {

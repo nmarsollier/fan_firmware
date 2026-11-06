@@ -8,7 +8,6 @@
 #include "esp_log.h"
 #include "nvs_flash.h"
 
-#include "board.h"
 #include "buttons.h"
 #include "ds18b20.h"
 #include "fan.h"
@@ -34,7 +33,6 @@ void setup_init(void) {
     }
     ESP_ERROR_CHECK(nvs_result);
 
-    board_init();
     led_init();
 
     /* Mirror temperature (DS18B20) first so the fan can seed its AUTO speed. */
