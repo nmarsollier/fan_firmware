@@ -16,6 +16,8 @@
 #include "ds18b20.h"
 #include "esp_err.h"
 #include "esp_log.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 static const char *TAG = "FAN";
 
@@ -25,6 +27,7 @@ static const char *TAG = "FAN";
 #define FAN_PWM_FREQ_HZ     25000
 #define FAN_PWM_DUTY_RES    LEDC_TIMER_8_BIT
 #define FAN_PWM_MAX_DUTY    255
+#define FAN_RELAY_SETTLE_MS 20
 
 static FanMode s_mode = FAN_MODE_AUTO;
 static uint8_t s_manual_speed = FAN_SPEED_MAX;
@@ -92,6 +95,13 @@ void fan_init(void) {
         .flags = { .output_invert = 1 },
     };
     ESP_ERROR_CHECK(ledc_channel_config(&chan));
+
+    /* Deterministic relay start: drive the relay OFF first and let the coil and
+     * driver settle, then boot in AUTO (which closes it). This guarantees the
+     * relay starts from a known de-energized state regardless of the power-on
+     * sequence. */
+    fan_apply_relay(false);
+    vTaskDelay(pdMS_TO_TICKS(FAN_RELAY_SETTLE_MS));
 
     /* Boot in AUTO: seed the speed from the mirror temperature and apply. */
     fan_set_mode(FAN_MODE_AUTO);
