@@ -59,8 +59,8 @@ instead of the session/data envelope.
 | Operation | Status |
 |---|---|
 | `capabilities` | Unified handshake header + fan capabilities (real). |
-| `state / device` | `power_external_present`, `health`, `fan_mode`, `reset_reason` (real; `power_external_present` is always `true` — the board no longer senses the 12 V rail). |
-| `state / fan` | `mode`, `power`, `speed`, `manual_speed`, `rpm`, `power_available` (real; `rpm` is a theoretical estimate from the PWM duty until the tach is wired; `power_available` is always `true`). |
+| `state / device` | `health`, `fan_mode`, `reset_reason` (real). |
+| `state / fan` | `mode`, `power`, `speed`, `manual_speed`, `rpm` (real; `rpm` is a theoretical estimate from the PWM duty until the tach is wired). |
 | `state / environment` | Mirror temperature only: `mirror_c` (real); ambient/humidity/dew are always `null`. |
 | `state / buttons` | Fan button press state (real, debounced). |
 | `config / <group> / get` | Read-only mock; `set` → `NOT_SUPPORTED`. |

@@ -16,6 +16,7 @@
 #include "ds18b20.h"
 #include "esp_err.h"
 #include "esp_log.h"
+#include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
@@ -29,9 +30,15 @@ static const char *TAG = "FAN";
 #define FAN_PWM_MAX_DUTY    255
 #define FAN_RELAY_SETTLE_MS 20
 
+/* AUTO fallback: hold the last speed through a brief 1-wire outage, then drop
+ * to the safety speed (FAN_SPEED_MIN) once the reading has been stale this
+ * long — i.e. a persistent sensor failure. */
+#define FAN_AUTO_INVALID_TIMEOUT_US  5000000
+
 static FanMode s_mode = FAN_MODE_AUTO;
 static uint8_t s_manual_speed = FAN_SPEED_MAX;
 static uint8_t s_effective_speed = 0;
+static int64_t s_last_valid_us = 0;
 
 /* Map a user speed (1..FAN_SPEED_MAX) to a PWM duty percent. */
 static uint8_t speed_to_pwm_pct(uint8_t speed) {
@@ -116,30 +123,39 @@ static float fan_auto_mirror(void) {
     return ds18b20_get_temperature_c();
 }
 
+/* Target AUTO speed for a mirror temperature, given the current speed (min or
+ * max). The hysteresis band is symmetric: hold the current speed inside
+ * [threshold - h, threshold + h], drop to min only below the lower edge and
+ * rise to max only above the upper edge. Pass FAN_SPEED_MIN as `current` when
+ * (re)entering AUTO so the mode switch uses the upper edge and never skips the
+ * band. */
+static uint8_t fan_auto_speed(float mirror, uint8_t current) {
+    if (current == FAN_SPEED_MAX) {
+        return (mirror <= FAN_AUTO_MIRROR_THRESHOLD_C - FAN_AUTO_HYSTERESIS_C)
+               ? FAN_SPEED_MIN : FAN_SPEED_MAX;
+    }
+    return (mirror >= FAN_AUTO_MIRROR_THRESHOLD_C + FAN_AUTO_HYSTERESIS_C)
+           ? FAN_SPEED_MAX : FAN_SPEED_MIN;
+}
+
 void fan_update(void) {
     if (s_mode != FAN_MODE_AUTO) {
         return;
     }
 
-    /* No mirror reading yet (or the sensor is absent): keep the fan at min. */
+    /* No valid mirror reading: hold the last speed through a brief 1-wire
+     * outage, then drop to the safety speed (min) once the outage becomes a
+     * persistent failure. */
     if (!ds18b20_reading_valid()) {
-        s_effective_speed = FAN_SPEED_MIN;
-        fan_apply_pwm(s_effective_speed);
+        if (esp_timer_get_time() - s_last_valid_us >= FAN_AUTO_INVALID_TIMEOUT_US) {
+            s_effective_speed = FAN_SPEED_MIN;
+            fan_apply_pwm(s_effective_speed);
+        }
         return;
     }
+    s_last_valid_us = esp_timer_get_time();
 
-    float mirror = fan_auto_mirror();
-
-    if (s_effective_speed == FAN_SPEED_MAX) {
-        /* Cooling at max: drop to min only below the lower hysteresis edge. */
-        if (mirror <= FAN_AUTO_MIRROR_THRESHOLD_C - FAN_AUTO_HYSTERESIS_C) {
-            s_effective_speed = FAN_SPEED_MIN;
-        }
-    } else if (mirror >= FAN_AUTO_MIRROR_THRESHOLD_C + FAN_AUTO_HYSTERESIS_C) {
-        /* Cooling at min: rise to max only above the upper hysteresis edge. */
-        s_effective_speed = FAN_SPEED_MAX;
-    }
-
+    s_effective_speed = fan_auto_speed(fan_auto_mirror(), s_effective_speed);
     fan_apply_pwm(s_effective_speed);
 }
 
@@ -151,12 +167,12 @@ void fan_set_mode(FanMode mode) {
     } else if (mode == FAN_MODE_MANUAL) {
         s_effective_speed = s_manual_speed;
     } else {
-        /* AUTO — re-seed the speed from the current mirror temperature so a
-         * switch from OFF/MANUAL immediately picks the right speed;
-         * fan_update() then maintains it with hysteresis. */
-        s_effective_speed = (ds18b20_reading_valid()
-                             && fan_auto_mirror() >= FAN_AUTO_MIRROR_THRESHOLD_C)
-                            ? FAN_SPEED_MAX : FAN_SPEED_MIN;
+        /* AUTO — re-seed from the current mirror temperature, applying the
+         * hysteresis from the "min" side so a mode switch observes the same
+         * band as steady-state fan_update() (never skips it). */
+        s_effective_speed = ds18b20_reading_valid()
+                            ? fan_auto_speed(fan_auto_mirror(), FAN_SPEED_MIN)
+                            : FAN_SPEED_MIN;
     }
 
     fan_apply();

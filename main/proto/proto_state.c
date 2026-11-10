@@ -36,7 +36,7 @@ static void state_device(char *out, size_t cap, uint32_t id, const char *session
     out[0] = '\0';
     proto_env_begin(out, cap, &len, "state", id, session, true);
     proto_buf_append(out, cap, &len,
-        ",\"data\":{\"power_external_present\":true,\"health\":\"ok\","
+        ",\"data\":{\"health\":\"ok\","
         "\"fan_mode\":\"%s\",\"reset_reason\":\"%s\",\"faults\":[]}}",
         fan_mode_to_string(fan_get_mode()),
         reset_reason_str());
@@ -56,7 +56,7 @@ static void state_fan(char *out, size_t cap, uint32_t id, const char *session) {
     proto_env_begin(out, cap, &len, "state", id, session, true);
     proto_buf_append(out, cap, &len,
         ",\"data\":{\"error\":null,\"mode\":\"%s\",\"power\":%s,\"speed\":%d,"
-        "\"manual_speed\":%d,\"power_available\":true,\"rpm\":",
+        "\"manual_speed\":%d,\"rpm\":",
         mode, power ? "true" : "false", speed, manual);
     if (rpm >= 0) {
         proto_buf_append(out, cap, &len, "%d}}", rpm);
