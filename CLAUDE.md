@@ -48,7 +48,9 @@ handoff for single-USB flashing), `proto` (`proto=2` protocol,
 `buttons` (local fan mode cycle).
 
 LED behaviour: the onboard RGB LED is green when healthy (off/auto) and yellow
-in manual mode; a green beacon is reserved for a fault.
+in manual mode; a green beacon (blink) signals a fault — the mirror temperature
+sensor is absent. In AUTO the fan holds min speed (low RPM) when the sensor is
+absent, matching the cooled-to-target speed.
 
 One physical button is wired (push-to-GND on GPIO 3): fan mode cycle (off/auto/manual).
 

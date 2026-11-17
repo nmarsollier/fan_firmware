@@ -48,8 +48,8 @@ void led_set_color(uint8_t r, uint8_t g, uint8_t b) {
         s_pending = false;
     }
 
-    s_rgb[0] = r;   /* LED byte order is RGB (this board's clone) */
-    s_rgb[1] = g;
+    s_rgb[0] = g;   /* WS2812/SK6812 wire order is GRB (green first) */
+    s_rgb[1] = r;
     s_rgb[2] = b;
 
     rmt_transmit_config_t tx_conf = { .loop_count = 0 };

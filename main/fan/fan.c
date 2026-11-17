@@ -143,6 +143,15 @@ void fan_update(void) {
         return;
     }
 
+    /* No mirror sensor at all: hold the fan at the safety speed (min) — the
+     * same speed used once the mirror has cooled to target — and never chase a
+     * reading. */
+    if (!ds18b20_is_present()) {
+        s_effective_speed = FAN_SPEED_MIN;
+        fan_apply_pwm(s_effective_speed);
+        return;
+    }
+
     /* No valid mirror reading: hold the last speed through a brief 1-wire
      * outage, then drop to the safety speed (min) once the outage becomes a
      * persistent failure. */

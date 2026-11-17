@@ -8,8 +8,8 @@
  *
  * NORMAL — green (solid), the fan is healthy (off or auto mode).
  * MANUAL — yellow (solid), the fan is in manual mode.
- * ERROR  — green beacon (blink-blink-pause); reserved for a fault, no fault
- *          source is wired yet.
+ * ERROR  — green beacon (blink-blink-pause), a fault: the mirror temperature
+ *          sensor is absent.
  *
  * All state decisions are made inside led_update(), the single public entry
  * point for LED state changes. No other module should call led_set_state()
