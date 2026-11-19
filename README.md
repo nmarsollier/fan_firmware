@@ -7,7 +7,7 @@ sensors live in their own boards (`eaf_firmware` and `amb_firmware`).
 ## Functionality
 
 - Primary-mirror fan (Noctua NF-A8 PWM + 12 V relay), modes `off`/`auto`/`manual`.
-- Mirror temperature (DS18B20) — the feedback signal for the AUTO mode.
+- Mirror temperature (DS18B20) — telemetry and sensor-absent fault detection.
 - An onboard RGB status LED (green = healthy, yellow = manual mode).
 - A local fan-mode cycle button (off → auto → manual → off).
 - A single USB connector for both the app (CDC-ACM) and flashing (ROM download).
@@ -62,10 +62,8 @@ manual → off); the mode is also settable from the protocol.
 - The protocol reports a **theoretical RPM** (`state/fan` → `rpm`) derived from the
   PWM duty and Noctua's published 450–2200 RPM curve (0 when off). It is an
   estimate until the tachometer is wired.
-- `manual` mode uses the speed set by the client; `auto` computes it from the mirror
-  temperature: `FAN_SPEED_MAX` above `FAN_AUTO_MIRROR_THRESHOLD_C` + hysteresis,
-  `FAN_SPEED_MIN` below it (and while no valid reading is available). The threshold
-  and hysteresis are tunable in `config.h`.
+- `manual` mode uses the speed set by the client; `auto` runs `FAN_SPEED_MAX` for
+  the first `FAN_AUTO_HIGH_DURATION_US` after power-on, then `FAN_SPEED_MIN`.
 
 ## Mirror temperature sensor — DS18B20
 
@@ -73,8 +71,8 @@ manual → off); the mode is also settable from the protocol.
 - Read over 1-wire on GPIO 7 (RMT-backed; internal pull-up enabled, a 4.7 kΩ
   pull-up to 3.3 V is recommended). The read is non-blocking: a 12-bit
   conversion (~750 ms) runs between runtime-loop ticks.
-- It drives the fan's AUTO mode and is exposed to the gateway via `state/environment`
-  (`mirror_c`).
+- It is exposed to the gateway via `state/environment` (`mirror_c`) and signals the
+  sensor-absent fault (green beacon).
 
 ## Communication
 

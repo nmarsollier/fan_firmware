@@ -6,8 +6,8 @@
 /*
  * Fan subsystem — Noctua NF-A8 PWM with a 12 V relay.
  *
- * Three modes: OFF (relay off), AUTO (speed from the mirror temperature, an
- * absolute threshold) and MANUAL (speed set by the client). The speed input is
+ * Three modes: OFF (relay off), AUTO (max speed for the first 45 minutes after
+ * power-on, then min) and MANUAL (speed set by the client). The speed input is
  * driven with a 25 kHz PWM through an open-drain N-MOSFET. RPM is read from the
  * tachometer (not wired yet).
  */
@@ -20,7 +20,7 @@ typedef enum {
 
 void fan_init(void);
 
-/* Periodic update — drives the AUTO speed from the mirror temperature. */
+/* Periodic update — refreshes the AUTO speed (time-based). */
 void fan_update(void);
 
 FanMode fan_get_mode(void);

@@ -42,15 +42,15 @@ Desktop app (Go) (Alpaca/UI) → USB CDC-ACM → Proto → Fan → GPIO (hardwar
 
 Implemented: `led` (onboard RGB status LED), `ds18b20` (mirror temperature,
 non-blocking 1-wire read), `fan` (Noctua PWM + relay, modes off/auto/manual;
-AUTO from the mirror temperature), `usb_cdc` (transport, incl. download-mode
+AUTO: max 45 min, then min), `usb_cdc` (transport, incl. download-mode
 handoff for single-USB flashing), `proto` (`proto=2` protocol,
 `device_id="fan"`, with capabilities/state/action/config/control handlers) and
 `buttons` (local fan mode cycle).
 
 LED behaviour: the onboard RGB LED is green when healthy (off/auto) and yellow
 in manual mode; a green beacon (blink) signals a fault — the mirror temperature
-sensor is absent. In AUTO the fan holds min speed (low RPM) when the sensor is
-absent, matching the cooled-to-target speed.
+sensor is absent. In AUTO the fan runs max speed for the first 45 minutes after power-on, then
+drops to min speed.
 
 One physical button is wired (push-to-GND on GPIO 3): fan mode cycle (off/auto/manual).
 

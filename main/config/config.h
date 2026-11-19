@@ -34,10 +34,9 @@
 #define FAN_RPM_MIN           450    /* NF-A8 PWM at FAN_MIN_PWM_PCT */
 #define FAN_RPM_MAX           2200   /* NF-A8 PWM at FAN_MAX_PWM_PCT */
 
-/* AUTO mode: mirror temperature above which the fan runs at max speed, with
- * hysteresis (max at T+h, min at T−h). Absolute threshold, to be calibrated. */
-#define FAN_AUTO_MIRROR_THRESHOLD_C  20.0f
-#define FAN_AUTO_HYSTERESIS_C         0.1f
+/* AUTO mode: run at max speed for this long after power-on, then drop to the
+ * safety speed (min). Time is measured from boot. */
+#define FAN_AUTO_HIGH_DURATION_US  (45 * 60 * 1000000LL)
 
 /* =========================================================================
  * Local buttons — push-to-GND (active-low, internal pull-ups).
