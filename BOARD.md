@@ -49,11 +49,11 @@ Broken-out GPIOs: GP1–GP13 (plus UART0 TX/RX). The native USB D+/D- pins
 
 ## Firmware relevance
 
-- Status LED: onboard RGB (WS2812) on GPIO48, driven via RMT (green = healthy,
-  yellow = manual fan mode, green beacon = fault).
+- Status LED: onboard RGB (WS2812) on GPIO48, driven via RMT (red = off,
+  blue = auto, green = manual).
 - Fan PWM: GPIO1 (25 kHz through an open-drain N-MOSFET); fan 12 V relay enable:
   GPIO8.
-- Fan-mode button: GPIO3 (push-to-GND, active-low); DS18B20 1-wire: GPIO7.
+- Fan-mode button: GPIO3 (push-to-GND, active-low).
 - USB CDC-ACM: native USB on the USB-C connector (GPIO19/20), driven by TinyUSB.
   The app serial port and the ROM-download (flashing) port share this one
   connector.

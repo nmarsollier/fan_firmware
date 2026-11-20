@@ -9,7 +9,6 @@
 #include "nvs_flash.h"
 
 #include "buttons.h"
-#include "ds18b20.h"
 #include "fan.h"
 #include "led.h"
 #include "usb_cdc.h"
@@ -19,8 +18,8 @@ static const char *TAG = "RUNTIME_SETUP";
 /*
  * Business use case: prepare the fan controller for operation.
  *
- * Objective: bring the core services, board peripherals, mirror sensor and the
- * USB transport online so the fan starts in a usable state.
+ * Objective: bring the core services, board peripherals and the USB transport
+ * online so the fan starts in a usable state.
  *
  * LED state is managed exclusively by led_update() in the runtime loop — no
  * explicit set_state calls here.
@@ -35,8 +34,6 @@ void setup_init(void) {
 
     led_init();
 
-    /* Mirror temperature (DS18B20) first so the fan can seed its AUTO speed. */
-    ds18b20_init();
     fan_init();
     buttons_init();
 

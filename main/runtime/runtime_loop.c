@@ -8,7 +8,6 @@
 #include "freertos/task.h"
 
 #include "buttons.h"
-#include "ds18b20.h"
 #include "fan.h"
 #include "led.h"
 
@@ -19,15 +18,13 @@
 /*
  * Business use case: orchestrate the board's periodic operational cycle.
  *
- * Objective: keep input polling, the mirror sensor read and the status LEDs
- * running at a stable cadence.
+ * Objective: keep input polling and the status LEDs running at a stable cadence.
  */
 static void main_loop_task(void *arg) {
     (void) arg;
     const TickType_t period = pdMS_TO_TICKS(MAIN_LOOP_PERIOD_MS);
 
     while (true) {
-        ds18b20_update();
         fan_update();
         buttons_update();
         led_update();
@@ -48,6 +45,6 @@ void setup_runtime_start(void) {
         NULL,
         MAIN_TASK_PRIORITY,
         NULL,
-        1);  /* CPU 1 — keep sensor I/O (ADC/I2C) off CPU 0 so a stuck read
-              * never blocks the RX task (CPU 0, prio 19). */
+        1);  /* CPU 1 — keep the loop off CPU 0 so it never blocks the RX task
+              * (CPU 0, prio 19). */
 }

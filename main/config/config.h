@@ -18,9 +18,6 @@
  * Super Mini (clone variants may use GPIO 21). */
 #define LED_GPIO        GPIO_NUM_48
 
-/* Primary-mirror temperature sensor (DS18B20) — 1-wire on a dedicated GPIO. */
-#define DS18B20_GPIO    GPIO_NUM_7
-
 /* Primary-mirror fan — Noctua NF-A8 PWM + 12 V relay.
  * PWM drives the fan speed input (25 kHz) through an open-drain N-MOSFET;
  * the relay switches the fan's 12 V supply. */

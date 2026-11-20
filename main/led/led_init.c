@@ -3,7 +3,7 @@
  * Purpose: initialise the RMT-based WS2812 driver on the onboard GPIO.
  *
  * Configures an RMT TX channel at 10 MHz with a bytes encoder tuned to the
- * WS2812 bit timing, and starts with the NORMAL (green) color.
+ * WS2812 bit timing, and starts with the AUTO (blue) color.
  */
 #include "led_internal.h"
 
@@ -23,10 +23,6 @@ void led_init(void) {
         .resolution_hz = LED_RMT_RES_HZ,
         .mem_block_symbols = 64,
         .trans_queue_depth = 4,
-        /* The LED and the DS18B20 1-wire channels (onewire_bus RMT) share one
-         * RMT group interrupt; its priority is set by the first channel created
-         * (this one). The 1-wire driver leaves the priority unspecified, so it
-         * inherits this one. */
         .intr_priority = 3,
     };
     ESP_ERROR_CHECK(rmt_new_tx_channel(&tx_config, &led_tx_chan));
@@ -54,7 +50,7 @@ void led_init(void) {
         ESP_LOGE(TAG, "failed to create LED mutex");
     }
 
-    /* Set the initial NORMAL color; led_set_state() skips it because the default
-     * state is already NORMAL, so the WS2812 would otherwise never light. */
-    led_set_color(LED_NORMAL_R, LED_NORMAL_G, LED_NORMAL_B);
+    /* Set the initial AUTO color; led_set_state() skips it because the default
+     * state is already AUTO, so the WS2812 would otherwise never light. */
+    led_set_color(LED_AUTO_R, LED_AUTO_G, LED_AUTO_B);
 }

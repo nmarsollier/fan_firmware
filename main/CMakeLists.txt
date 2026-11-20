@@ -5,11 +5,7 @@ idf_component_register(
 
         "led/led_init.c"
         "led/led_state.c"
-        "led/led_beacon.c"
         "led/led_update.c"
-
-        "ds18b20/ds18b20_init.c"
-        "ds18b20/ds18b20_read.c"
 
         "fan/fan.c"
         "buttons/buttons.c"
@@ -36,7 +32,6 @@ idf_component_register(
         "."
         "config"
         "led"
-        "ds18b20"
         "fan"
         "buttons"
         "usb_cdc"

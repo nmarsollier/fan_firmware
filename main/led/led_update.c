@@ -3,27 +3,24 @@
  * Purpose: periodic LED state decision — the single public entry point for all
  * LED state changes.
  *
- * Called from the runtime loop every ~200 ms. Inspects the mirror sensor and
- * the fan mode to pick the correct LED state:
+ * Called from the runtime loop every ~200 ms. Inspects the fan mode to pick the
+ * correct LED state:
  *
- *   1. Mirror sensor absent -> green beacon (blink-blink-pause)
- *   2. Manual mode          -> yellow (solid)
- *   3. Off / auto           -> green (normal)
+ *   1. Off    -> red (solid)
+ *   2. Auto   -> blue (solid)
+ *   3. Manual -> green (solid)
  *
  * No other module calls led_set_state() directly. This keeps all LED logic
  * cohesive in one place.
  */
 #include "led_internal.h"
 
-#include "ds18b20.h"
 #include "fan.h"
 
 void led_update(void) {
-    if (!ds18b20_is_present()) {
-        led_set_state(LED_STATE_ERROR);
-    } else if (fan_get_mode() == FAN_MODE_MANUAL) {
-        led_set_state(LED_STATE_MANUAL);
-    } else {
-        led_set_state(LED_STATE_NORMAL);
+    switch (fan_get_mode()) {
+    case FAN_MODE_OFF:    led_set_state(LED_STATE_OFF);    break;
+    case FAN_MODE_AUTO:   led_set_state(LED_STATE_AUTO);   break;
+    case FAN_MODE_MANUAL: led_set_state(LED_STATE_MANUAL); break;
     }
 }

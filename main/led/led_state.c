@@ -1,6 +1,6 @@
 /* Led — led_state.c
  *
- * Purpose: apply LED state transitions (green / beacon).
+ * Purpose: apply LED state transitions (red / blue / green).
  *
  * Internal helper called exclusively from led_update(); other modules must
  * never call led_set_state() directly.
@@ -12,7 +12,7 @@
 
 /* ── Shared state ──────────────────────────────────────────── */
 
-LedState led_current_state = LED_STATE_NORMAL;
+LedState led_current_state = LED_STATE_AUTO;
 
 static const char *TAG = "LED";
 
@@ -48,8 +48,8 @@ void led_set_color(uint8_t r, uint8_t g, uint8_t b) {
         s_pending = false;
     }
 
-    s_rgb[0] = g;   /* WS2812/SK6812 wire order is GRB (green first) */
-    s_rgb[1] = r;
+    s_rgb[0] = r;   /* wire order is RGB (red first) */
+    s_rgb[1] = g;
     s_rgb[2] = b;
 
     rmt_transmit_config_t tx_conf = { .loop_count = 0 };
@@ -76,18 +76,15 @@ void led_set_state(LedState state) {
 
     led_current_state = state;
 
-    /* Stop the animation (if any) before applying the new state. */
-    led_beacon_stop();
-
     switch (state) {
-    case LED_STATE_NORMAL:
-        led_set_color(LED_NORMAL_R, LED_NORMAL_G, LED_NORMAL_B);
+    case LED_STATE_OFF:
+        led_set_color(LED_OFF_R, LED_OFF_G, LED_OFF_B);
+        break;
+    case LED_STATE_AUTO:
+        led_set_color(LED_AUTO_R, LED_AUTO_G, LED_AUTO_B);
         break;
     case LED_STATE_MANUAL:
         led_set_color(LED_MANUAL_R, LED_MANUAL_G, LED_MANUAL_B);
-        break;
-    case LED_STATE_ERROR:
-        led_beacon_start();
         break;
     }
 }

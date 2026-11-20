@@ -103,7 +103,7 @@ void fan_init(void) {
     fan_apply_relay(false);
     vTaskDelay(pdMS_TO_TICKS(FAN_RELAY_SETTLE_MS));
 
-    /* Boot in AUTO: seed the speed from the mirror temperature and apply. */
+    /* Boot in AUTO: apply the time-based AUTO speed. */
     fan_set_mode(FAN_MODE_AUTO);
 
     ESP_LOGI(TAG, "PWM GPIO %d @ 25 kHz, relay GPIO %d (active-%s)",

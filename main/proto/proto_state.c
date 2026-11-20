@@ -1,6 +1,6 @@
 /* Proto — proto_state.c — STATE: coherent snapshots per target.
  *
- * Routed by `target`: device, fan, environment (mirror only), buttons.
+ * Routed by `target`: device, fan, buttons.
  */
 #include "proto_internal.h"
 
@@ -9,7 +9,6 @@
 #include "esp_system.h"
 
 #include "buttons.h"
-#include "ds18b20.h"
 
 static void get_session(const char *req, char *out, size_t cap) {
     proto_json_get_string(req, "session", out, cap);
@@ -65,30 +64,6 @@ static void state_fan(char *out, size_t cap, uint32_t id, const char *session) {
     }
 }
 
-/* ── state / environment (mirror only) ─────────────────────── */
-
-static void state_environment(char *out, size_t cap, uint32_t id, const char *session) {
-    bool mirror_valid = ds18b20_reading_valid();
-
-    size_t len = 0;
-    out[0] = '\0';
-    proto_env_begin(out, cap, &len, "state", id, session, true);
-
-    if (!mirror_valid) {
-        proto_buf_append(out, cap, &len,
-            ",\"data\":{\"error\":\"SENSOR_ABSENT\",\"ambient_c\":null,"
-            "\"humidity_pct\":null,\"mirror_c\":null,\"dew_point_c\":null,"
-            "\"mirror_ambient_delta_c\":null,\"mirror_dew_margin_c\":null}}");
-        return;
-    }
-
-    proto_buf_append(out, cap, &len,
-        ",\"data\":{\"error\":null,\"ambient_c\":null,\"humidity_pct\":null,"
-        "\"mirror_c\":%.2f,\"dew_point_c\":null,"
-        "\"mirror_ambient_delta_c\":null,\"mirror_dew_margin_c\":null}}",
-        ds18b20_get_temperature_c());
-}
-
 /* ── state / buttons ───────────────────────────────────────── */
 
 static void state_buttons(char *out, size_t cap, uint32_t id, const char *session) {
@@ -114,8 +89,6 @@ void proto_handle_state(const char *req, uint32_t id, char *out, size_t cap) {
         state_device(out, cap, id, session);
     } else if (strcmp(target, "fan") == 0) {
         state_fan(out, cap, id, session);
-    } else if (strcmp(target, "environment") == 0) {
-        state_environment(out, cap, id, session);
     } else if (strcmp(target, "buttons") == 0) {
         state_buttons(out, cap, id, session);
     } else {

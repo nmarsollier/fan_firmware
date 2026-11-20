@@ -21,17 +21,17 @@
 
 /* ── Status colors (RGB) ──────────────────────────────────── */
 
-#define LED_NORMAL_R        0
-#define LED_NORMAL_G        64
-#define LED_NORMAL_B        0
+#define LED_OFF_R           64
+#define LED_OFF_G           0
+#define LED_OFF_B           0
 
-#define LED_MANUAL_R        64
+#define LED_AUTO_R          0
+#define LED_AUTO_G          0
+#define LED_AUTO_B          64
+
+#define LED_MANUAL_R        0
 #define LED_MANUAL_G        64
 #define LED_MANUAL_B        0
-
-#define LED_ERROR_R         0
-#define LED_ERROR_G         64
-#define LED_ERROR_B         0
 
 /* ── Shared state ──────────────────────────────────────────── */
 
@@ -48,10 +48,6 @@ extern SemaphoreHandle_t led_mutex;
 /* Set the WS2812 color (RGB). */
 void led_set_color(uint8_t r, uint8_t g, uint8_t b);
 
-/* Start / stop the beacon animation (blink, error). */
-void led_beacon_start(void);
-void led_beacon_stop(void);
-
-/* Internal: apply a state transition (green / beacon). Only called from
+/* Internal: apply a state transition (red / blue / green). Only called from
  * led_update() — not part of the public API. */
 void led_set_state(LedState state);

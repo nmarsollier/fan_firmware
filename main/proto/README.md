@@ -31,7 +31,7 @@ Response (`ok:true` + `data`, or `ok:false` + `error`):
 ```
 
 - `type`: `capabilities` | `state` | `config` | `control` | `action`.
-- `target`: `device` | `fan` | `environment` | `buttons`.
+- `target`: `device` | `fan` | `buttons`.
 - `action` (for `type=action`) or `op` (for control/config) names the operation.
 - `params` is an object; `id` is a non-zero uint32 (0 is reserved for events, not yet
   implemented); `session`/`boot_id` are strings.
@@ -47,8 +47,7 @@ instead of the session/data envelope.
  "device_type":"accessories","device_id":"fan",
  "name":"FAN","firmware_version":"0.1.0",
  "capabilities":{
-   "fan":{"mode":["off","auto","manual"],"speed":true,"rpm":true},
-   "sensors":{"mirror":"DS18B20"}}}
+   "fan":{"mode":["off","auto","manual"],"speed":true,"rpm":true}}}
 ```
 
 - `device_type`: `mount` | `accessories` — the discriminator.
@@ -61,7 +60,6 @@ instead of the session/data envelope.
 | `capabilities` | Unified handshake header + fan capabilities (real). |
 | `state / device` | `health`, `fan_mode`, `reset_reason` (real). |
 | `state / fan` | `mode`, `power`, `speed`, `manual_speed`, `rpm` (real; `rpm` is a theoretical estimate from the PWM duty until the tach is wired). |
-| `state / environment` | Mirror temperature only: `mirror_c` (real); ambient/humidity/dew are always `null`. |
 | `state / buttons` | Fan button press state (real, debounced). |
 | `config / <group> / get` | Read-only mock; `set` → `NOT_SUPPORTED`. |
 | `control / fan / mode` | `params.value` (`off`/`auto`/`manual`). |
@@ -76,15 +74,9 @@ instead of the session/data envelope.
 
 ## State error model
 
-Every `state/<target>` response carries `ok:true` and a `data.error` field that
-reports the subsystem's own condition:
-
-- `null` — healthy.
-- `"SENSOR_ABSENT"` — the DS18B20 was not detected at boot (or no valid reading yet);
-  the `mirror_c` field is `null`.
-
-A `state` request **always answers**: a sensor fault is returned as an error state,
-never as a hang or a fabricated reading (no 0 °C placeholder).
+Every `state/<target>` response carries `ok:true` and a per-subsystem condition
+field (`error`, `health`, `faults`), currently always healthy. A `state` request
+**always answers**.
 
 ## Pending (out of this iteration)
 

@@ -15,10 +15,12 @@ Keep this file in a simple format so it can be read and edited quickly.
 ## Project definition
 
 - Primary-mirror fan controller for a Newtonian telescope, on ESP32-S3.
-- Functions: fan control (Noctua NF-A8 PWM 12 V with relay), mirror temperature
-  (DS18B20, 1-wire) and an onboard RGB status LED (WS2812).
+- Functions: fan control (Noctua NF-A8 PWM 12 V with relay) and an onboard RGB
+  status LED (WS2812).
 - 12 V supply (fan and ESP); the ESP is also powered over USB.
 - USB CDC-ACM communication with JSON messages.
+- **Stella Lyra variant (this branch)**: no mirror temperature control; runs
+  autonomously most of the time and is normally disconnected from `mount_panel`.
 - Hardware detail in `README.md`.
 
 ## Architecture
@@ -31,7 +33,6 @@ Desktop app (Go) (Alpaca/UI) → USB CDC-ACM → Proto → Fan → GPIO (hardwar
 
 - **config** (`main/config/`) — single source of truth for pins and build constants.
 - **led** (`main/led/`) — the onboard RGB status LED (WS2812 via RMT).
-- **ds18b20** (`main/ds18b20/`) — DS18B20 mirror temperature (1-wire, non-blocking read).
 - **fan** (`main/fan/`) — Noctua PWM + relay + modes (off/auto/manual).
 - **usb_cdc** (`main/usb_cdc/`) — USB CDC-ACM transport.
 - **proto** (`main/proto/`) — `proto=2` protocol (framing, dispatch, handlers).
@@ -40,17 +41,15 @@ Desktop app (Go) (Alpaca/UI) → USB CDC-ACM → Proto → Fan → GPIO (hardwar
 
 ## Current state
 
-Implemented: `led` (onboard RGB status LED), `ds18b20` (mirror temperature,
-non-blocking 1-wire read), `fan` (Noctua PWM + relay, modes off/auto/manual;
+Implemented: `led` (onboard RGB status LED), `fan` (Noctua PWM + relay, modes off/auto/manual;
 AUTO: max 45 min, then min), `usb_cdc` (transport, incl. download-mode
 handoff for single-USB flashing), `proto` (`proto=2` protocol,
 `device_id="fan"`, with capabilities/state/action/config/control handlers) and
 `buttons` (local fan mode cycle).
 
-LED behaviour: the onboard RGB LED is green when healthy (off/auto) and yellow
-in manual mode; a green beacon (blink) signals a fault — the mirror temperature
-sensor is absent. In AUTO the fan runs max speed for the first 45 minutes after power-on, then
-drops to min speed.
+LED behaviour: the onboard RGB LED is red in off mode, blue in auto and green in
+manual mode. In AUTO the fan runs max speed for the first 45 minutes after
+power-on, then drops to min speed.
 
 One physical button is wired (push-to-GND on GPIO 3): fan mode cycle (off/auto/manual).
 
