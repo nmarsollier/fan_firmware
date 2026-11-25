@@ -21,7 +21,7 @@
 /* Primary-mirror fan — Noctua NF-A8 PWM + 12 V relay.
  * PWM drives the fan speed input (25 kHz) through an open-drain N-MOSFET;
  * the relay switches the fan's 12 V supply. */
-#define FAN_PWM_GPIO           GPIO_NUM_1
+#define FAN_PWM_GPIO           GPIO_NUM_12
 #define FAN_RELAY_GPIO         GPIO_NUM_8
 #define FAN_RELAY_ACTIVE_LEVEL 1
 #define FAN_SPEED_MAX         100    /* user speed at full duty (2200 RPM) */
@@ -40,4 +40,4 @@
  * ========================================================================= */
 
 /* Fan mode cycle (off → auto → manual → off). */
-#define BUTTON_FAN_MODE_GPIO        GPIO_NUM_3
+#define BUTTON_FAN_MODE_GPIO        GPIO_NUM_10
