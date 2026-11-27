@@ -30,7 +30,7 @@ static const char *TAG = "FAN";
 #define FAN_RELAY_SETTLE_MS 20
 
 static FanMode s_mode = FAN_MODE_AUTO;
-static uint8_t s_manual_speed = FAN_SPEED_MAX;
+static uint8_t s_manual_speed = FAN_MIN_PWM_PCT;
 static uint8_t s_effective_speed = 0;
 
 /* Map a user speed (1..FAN_SPEED_MAX) to a PWM duty percent. */

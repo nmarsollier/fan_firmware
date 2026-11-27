@@ -24,9 +24,9 @@
 #define FAN_PWM_GPIO           GPIO_NUM_12
 #define FAN_RELAY_GPIO         GPIO_NUM_8
 #define FAN_RELAY_ACTIVE_LEVEL 1
-#define FAN_SPEED_MAX         100    /* user speed at full duty (2200 RPM) */
 #define FAN_SPEED_MIN         1      /* user speed at FAN_MIN_PWM_PCT (≈450 RPM) */
 #define FAN_MIN_PWM_PCT       20     /* Noctua minimum duty (≈450 RPM) */
+#define FAN_SPEED_MAX         100    /* user speed at full duty (2200 RPM) */
 #define FAN_MAX_PWM_PCT       100    /* full duty (2200 RPM) */
 #define FAN_RPM_MIN           450    /* NF-A8 PWM at FAN_MIN_PWM_PCT */
 #define FAN_RPM_MAX           2200   /* NF-A8 PWM at FAN_MAX_PWM_PCT */
